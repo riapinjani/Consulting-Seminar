@@ -12,14 +12,13 @@ setwd('/Users/riapinjani/Documents/Fall\'19/Statistical\ Consulting')
 ```
 
 ```{r}
-# install.packages("readxl")
+
 library('readxl')
 require('plyr')
-install.packages('sas7bdat')
 require('sas7bdat')
 require('tidyr')
-install.packages('sf')
 require('sf')
+require(mapview)
 
 ```
 
@@ -28,28 +27,22 @@ foil_2016 <- read_excel('FOIL\ Case\ No.\ 375-2016.xlsx')
 foil_2007_2015  <- read_excel('FOIL Case No. 83-2017_List of Cigarette Retail Dealers from 2007 to 2015.xlsx')
 ```
 
-
+Combining the Data
 ```{r}
 colnames(foil_2016) <- c("LICENSE_NBR", "STATUS", "EXPIRATION_DATE", "INDUSTRY"   ,"BUSINESS_NAME", "BUILDING",  "STREET" ,"CITY","STATE" , "ZIP" , "BORO" )
 
 foil_2007_2016 <-  join(foil_2016, foil_2007_2015, type = 'full')
-```
-
-```{r}
-survey_2016 <- read.sas7bdat('chs2016_public.sas7bdat')
-```
-
-```{r}
 
 foil_2007_2016 <- unite(foil_2007_2016,"address", c(BUILDING, STREET, CITY, STATE, ZIP), sep = " ")
-
-
 ```
 
+```{r}
+# survey_2016 <- read.sas7bdat('chs2016_public.sas7bdat')
+```
 
 ```{r}
 
-foil_2007_2016_subset <- foil_2007_2016[1:20,]
+foil_2007_2016_subset <- foil_2007_2016[1:50,]
 
 urladdresses <- do.call(rbind, lapply(foil_2007_2016_subset$address, URLencode))
 ```
