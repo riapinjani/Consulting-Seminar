@@ -18,46 +18,263 @@ require('plyr')
 require('sas7bdat')
 require('tidyr')
 require('sf')
-require(mapview)
-
+require('mapview')
+require('lubridate')
+require('ggplot2')
+require('tidyr')
+require('ggmap')
 ```
 
+
+
 ```{r}
-foil_2016 <- read_excel('FOIL\ Case\ No.\ 375-2016.xlsx')
+
 foil_2007_2015  <- read_excel('FOIL Case No. 83-2017_List of Cigarette Retail Dealers from 2007 to 2015.xlsx')
 ```
 
-Combining the Data
-```{r}
-colnames(foil_2016) <- c("LICENSE_NBR", "STATUS", "EXPIRATION_DATE", "INDUSTRY"   ,"BUSINESS_NAME", "BUILDING",  "STREET" ,"CITY","STATE" , "ZIP" , "BORO" )
-
-foil_2007_2016 <-  join(foil_2016, foil_2007_2015, type = 'full')
-
-foil_2007_2016 <- unite(foil_2007_2016,"address", c(BUILDING, STREET, CITY, STATE, ZIP), sep = " ")
-```
 
 ```{r}
-# survey_2016 <- read.sas7bdat('chs2016_public.sas7bdat')
-```
+foil_2007_2015 <-  foil_2007_2015  %>% mutate (Year = year(foil_2007_2015$CREATE_DATE)) 
 
-```{r}
 
-foil_2007_2016_subset <- foil_2007_2016[1:50,]
-
-urladdresses <- do.call(rbind, lapply(foil_2007_2016_subset$address, URLencode))
-```
-
-```{r}
-search_urls <- paste("https://geosearch.planninglabs.nyc/v1/search?text=", urladdresses, sep="")
-geocoded_results <- do.call(rbind, lapply(search_urls, sf::st_read))
 ```
 
 
 
 
 ```{r}
-mapview::mapview(geocoded_results)
+foil_2010_2015 <- subset(foil_2007_2015, Year %in% c(2010,2011,2012,2013,2014,2015))
 ```
+
+
+```{r}
+foil_2010_2015_n <- foil_2010_2015 %>% count('Year')
+```
+
+
+```{r}
+ggplot(foil_2010_2015_n %>% count('Year'), aes ( x = Year, freq)) + geom_line() + theme_bw() + ylab('Count') + ggtitle('Retailers by year')
+```
+
+```{r}
+ggsave('Retailers by year.png')
+```
+
+
+
+
+```{r}
+foil_2010_2015$BORO <- toupper(foil_2010_2015$BORO)
+foil_2010_2015 <- subset(foil_2010_2015 , BORO %in% c('BRONX', 'BROOKLYN', 'MANHATTAN', 'QUEENS', 'STATEN ISLAND'))
+```
+
+```{r}
+foil_2010_2015 <- subset(foil_2010_2015, STATE == 'NY')
+```
+
+
+```{r}
+foil_2010_2015$CITY[which(foil_2010_2015$CITY == "BAYSIDE HILLS")] = "BAYSIDE"
+foil_2010_2015$CITY[which(foil_2010_2015$CITY == "CAMBRIA HTS")] = "CAMBRIA HEIGHTS"
+```
+
+
+
+```{r}
+foil_2010_2015 <- unite(foil_2010_2015,"address", c(BUILDING, STREET, CITY, STATE, ZIP), sep = " ")
+```
+
+```{r}
+foil_2010_2015$STREET_2 <- NULL
+```
+
+
+```{r}
+foil_2010_2015 <-  foil_2010_2015  %>% mutate (Year2 = year(foil_2010_2015$EXPIRATION_DATE)) 
+```
+
+
+```{r}
+foil_2011 <- subset(foil_2010_2015, Year == 2011)
+```
+
+
+```{r}
+register_google(key = 'AIzaSyA8y8FgxCH4WamYldyyBZyIg1TFUTLGUo0')
+```
+
+
+```{r}
+manhattan2011 <- subset(foil_2011, BORO == 'MANHATTAN')
+```
+
+
+
+
+```{r}
+geocode_manhattan2011 <- geocode(manhattan2011$address)
+```
+
+
+
+```{r}
+brooklyn2011 <- subset(foil_2011, BORO == 'BROOKLYN')
+```
+
+
+```{r}
+geocode_brooklyn2011 <- geocode(brooklyn2011$address)
+```
+
+
+```{r}
+bronx2011 <- subset(foil_2011, BORO == 'BRONX')
+```
+
+
+```{r}
+gecode_bronx2011 <- geocode(bronx2011$address)
+```
+
+
+
+```{r}
+queens2011 <- subset(foil_2011, BORO == 'QUEENS')
+```
+
+
+```{r}
+geocode_queens2011 <- geocode(queens2011$address)
+```
+
+
+
+
+```{r}
+statenisland2011 <- subset(foil_2011, BORO == 'STATEN ISLAND')
+```
+
+
+```{r}
+geocode_statenisland2011 <- geocode(statenisland2011$address)
+```
+
+
+
+```{r}
+foil_2015 <- subset(foil_2010_2015, Year == 2015)
+```
+
+
+```{r}
+manhattan2015 <- subset(foil_2015, BORO == 'MANHATTAN')
+```
+
+```{r}
+geocode_manhattan2015 <- geocode(manhattan2015$address)
+```
+
+
+
+```{r}
+brooklyn2015 <- subset(foil_2015, BORO == 'BROOKLYN')
+```
+
+
+```{r}
+geocode_brooklyn2015 <- geocode(brooklyn2015$address)
+```
+
+
+```{r}
+bronx2015 <- subset(foil_2015, BORO == 'BRONX')
+```
+
+
+```{r}
+gecode_bronx2015 <- geocode(bronx2015$address)
+```
+
+
+
+```{r}
+queens2015 <- subset(foil_2015, BORO == 'QUEENS')
+```
+
+
+```{r}
+geocode_queens2015 <- geocode(queens2015$address)
+```
+
+
+
+
+```{r}
+statenisland2015 <- subset(foil_2015, BORO == 'STATEN ISLAND')
+```
+
+
+```{r}
+geocode_statenisland2015 <- geocode(statenisland2015$address)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
