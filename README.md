@@ -37,3 +37,7 @@ Limitations;
 
 Unable to distinguish new residents from long-term residents during the gentrification period because of
 the cross-sectional nature of the data.
+
+A lack of consensus around the definition of gentrification
+
+Tobacco retailers data set may underestimate prevalence as it does not contain information for unlicensed shops
