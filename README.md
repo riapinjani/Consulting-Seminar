@@ -15,7 +15,7 @@
 Compare (2011 vs 2015) count of tobacco retailers across two groups-
 - tracts that gentrified 
 - tracts that did not gentrify
-for our data (tracts with lower than median income in 2011) 
+***for our data - (tracts with lower than median income in 2011)
 
 Outcome;
 Number of tobacco retailers
