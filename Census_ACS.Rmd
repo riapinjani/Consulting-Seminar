@@ -1,0 +1,179 @@
+---
+title: "Census Data Manipulation"
+author: "Christina Ho, Ria Pinjani"
+date: "11/3/2019"
+output: html_document
+---
+Census Data Analysis for NYC based on 2015 American Community Survey 5-year estimates.
+https://walkerke.github.io/tidycensus/articles/spatial-data.html
+
+Dependencies
+```{r setup, include=FALSE}
+library(tidycensus)
+library(tidyverse)
+library(mapview)
+library(leaflet)
+library(stringr)
+library(sf)
+options(tigris_use_cache = TRUE)
+```
+
+API Key
+```{r cars}
+# census_api_key("4a97bf83f424b28881bbcb2615511bc9c7ec2238", install=T)
+```
+```{r}
+# total population in NYS by county
+total_pop_nys <- get_decennial(year=2010,
+                               geography = 'county',
+                               variables = c(total_population = 'P001001'),
+                               state = "NY") %>% 
+  arrange(-value)
+total_pop_nys
+```
+```{r}
+
+pal <- colorQuantile(palette = "viridis", domain = total_pop_nys$estimate, n = 10)
+
+total_pop_nys %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+    addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+                stroke = FALSE,
+                smoothFactor = 0,
+                fillOpacity = 0.7,
+                color = ~ pal(estimate)) %>%
+    addLegend("bottomright", 
+              pal = pal, 
+              values = ~ estimate,
+              title = "Population percentiles",
+              opacity = 1)
+```
+
+Population of all counties in NY from 5-year ACS estimates
+```{r pressure, echo=FALSE}
+bronx <- get_acs(state = "NY", county = "Bronx", geography = "tract", 
+                  variables = "B19013_001", geometry = TRUE)
+
+kings <- get_acs(state = "NY", county = 'Kings', geography = "tract", 
+                  variables = "B19013_001", geometry = TRUE)
+
+queens <- get_acs(state = "NY", county = "Queens", geography = "tract", 
+                  variables = "B19013_001", geometry = TRUE)
+
+richmond <- get_acs(state = "NY", county = "Richmond", geography = "tract", 
+                  variables = "B19013_001", geometry = TRUE)
+
+newyork <- get_acs(state = "NY", county = "New York", geography = "tract", 
+                  variables = "B19013_001", geometry = TRUE)
+```
+```{r}
+racevars <- c(White = "P005003", 
+              Black = "P005004", 
+              Asian = "P005006", 
+              Hispanic = "P004003")
+
+bronx_faceted <- get_decennial(geography = "tract", variables = racevars, 
+                  state = "NY", county = "Bronx", geometry = TRUE,
+                  summary_var = "P001001")
+
+kings_faceted <- get_decennial(geography = "tract", variables = racevars, 
+                  state = "NY", county = "Kings", geometry = TRUE,
+                  summary_var = "P001001")
+
+richmond_faceted <- get_decennial(geography = "tract", variables = racevars, 
+                  state = "NY", county = "richmond", geometry = TRUE,
+                  summary_var = "P001001")
+
+newyork_faceted <- get_decennial(geography = "tract", variables = racevars, 
+                  state = "NY", county = "New York", geometry = TRUE,
+                  summary_var = "P001001")
+
+queens_faceted <- get_decennial(geography = "tract", variables = racevars, 
+                  state = "NY", county = "Queens", geometry = TRUE,
+                  summary_var = "P001001")
+```
+
+```{r}
+bronx_faceted %>%
+  mutate(pct = 100 * (value / summary_value)) %>%
+  ggplot(aes(fill = pct)) +
+  facet_wrap(~variable) +
+  geom_sf(color = NA) +
+  coord_sf(crs = 26915) + 
+  scale_fill_viridis_c()
+
+```
+
+```{r}
+bronx %>%
+  ggplot(aes(fill = estimate)) + 
+  geom_sf(color = NA) + 
+  coord_sf(crs = 26911) + 
+  scale_fill_viridis_c(option = "magma") 
+```
+```{r}
+queens_faceted %>%
+  mutate(pct = 100 * (value / summary_value)) %>%
+  ggplot(aes(fill = pct)) +
+  facet_wrap(~variable) +
+  geom_sf(color = NA) +
+  coord_sf(crs = 26915) + 
+  scale_fill_viridis_c()
+```
+
+```{r}
+kings_faceted %>%
+  mutate(pct = 100 * (value / summary_value)) %>%
+  ggplot(aes(fill = pct)) +
+  facet_wrap(~variable) +
+  geom_sf(color = NA) +
+  coord_sf(crs = 26915) + 
+  scale_fill_viridis_c()
+```
+
+```{r}
+richmond_faceted %>%
+  mutate(pct = 100 * (value / summary_value)) %>%
+  ggplot(aes(fill = pct)) +
+  facet_wrap(~variable) +
+  geom_sf(color = NA) +
+  coord_sf(crs = 26915) + 
+  scale_fill_viridis_c()
+```
+
+```{r}
+newyork_faceted %>%
+  mutate(pct = 100 * (value / summary_value)) %>%
+  ggplot(aes(fill = pct)) +
+  facet_wrap(~variable) +
+  geom_sf(color = NA) +
+  coord_sf(crs = 26915) + 
+  scale_fill_viridis_c()
+```
+Overall
+```{r}
+ny <- get_acs(geography = "tract", 
+              variables = "B19013_001", 
+              state = "NY", 
+              county = "New York", 
+              geometry = TRUE,
+              cb = FALSE)
+#  Remove the water area from Manhattan’s Census tracts
+st_erase <- function(x, y) {
+  st_difference(x, st_union(st_combine(y)))
+}
+
+ny_water <- area_water("NY", "New York", class = "sf")
+
+ny_erase <- st_erase(ny, ny_water)
+
+mapview(ny_erase, zcol = "estimate", legend = TRUE)
+```
+Writing to Shape Files
+```{r}
+library(sf)
+st_write(manhattan, "manhattan.shp")
+```
+
