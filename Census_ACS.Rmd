@@ -192,7 +192,7 @@ cencus_2007_2011 <- get_acs(geography = 'tract',
         
         
 cencus_2011_2015 <- get_acs(geography = 'tract',
-                            variables = 'B07011_001E',
+                            variables = 'B07011_001E', 
                             state = 'NY', year = 2015)
 ```
 
