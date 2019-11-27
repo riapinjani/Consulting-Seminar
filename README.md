@@ -13,11 +13,11 @@ We want to explore the potential correlations and relationships with gentrificat
 - "When white neighborhoods experience socioeconomic ascent, they retain whites. And when minority neighborhoods experience it, they become more white," said Ann Owens, the study's lead author and a sociologist at USC Dornsife College of Letters, Arts and Sciences.
 
 ### Methodology
-1. Cencus data for 2007-11 and 2011-15 (one record per tract)
+1. Cencus data for ACS 5 year estimates in: 2007-11 and 2011-15 (one record per tract)
 
-2. Restrict data in 2011 to all tracts with lower than median income
+2. Restrict data in 2011 to all tracts with lower than median income and compare with median income in 2015 in those same tracts.
 
-3. Creating a gentrification measure: growth in percentage of adults with college degrees
+3. Creating a gentrification measure: growth in percentage of adults with college degrees comparing two 5 year estimates.
 
 4. Visualize Cencus data
 
