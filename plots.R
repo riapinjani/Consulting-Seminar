@@ -1,4 +1,15 @@
 
+geocode_manhattan2011 <- read.csv('manhattan2011.csv')
+geocode_manhattan2015 <- read.csv('manhattan2015.csv')
+geocode_brooklyn2011 <- read.csv('brooklyn2011.csv')
+geocode_brooklyn2015 <- read.csv('brooklyn2015.csv')
+geocode_queens2011 <- read.csv('queens2011.csv')
+geocode_queens2015 <- read.csv('queens2015.csv')
+geocode_statenisland2011  <- read.csv('statenisland2011.csv')
+geocode_statenisland2015 <- read.csv('statenisland2015.csv')
+gecode_bronx2011 <-  read.csv('bronx2011.csv')
+gecode_bronx2015 <- read.csv('bronx2015.csv')
+
 manhattan_map <- get_map(location = c(lon = -73.96625, lat = 40.78343), maptype = "terrain", zoom = 11)
 p_manhattan = ggmap(manhattan_map)
 p_manhattan + geom_point(aes(x = lon, y = lat), data = geocode_manhattan2011, size = 0.1) + 
