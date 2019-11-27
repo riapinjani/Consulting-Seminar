@@ -20,8 +20,13 @@ options(tigris_use_cache = TRUE)
 
 API Key
 ```{r cars}
-# census_api_key("4a97bf83f424b28881bbcb2615511bc9c7ec2238", install=T)
+census_api_key("4a97bf83f424b28881bbcb2615511bc9c7ec2238", install=T)
 ```
+```{r}
+# readRenviron("~/.Renviron")
+```
+
+
 ```{r}
 # total population in NYS by county
 total_pop_nys <- get_decennial(year=2010,
@@ -31,25 +36,21 @@ total_pop_nys <- get_decennial(year=2010,
   arrange(-value)
 total_pop_nys
 ```
+
+
+
+
 ```{r}
-
-pal <- colorQuantile(palette = "viridis", domain = total_pop_nys$estimate, n = 10)
-
-total_pop_nys %>%
-    st_transform(crs = "+init=epsg:4326") %>%
-    leaflet(width = "100%") %>%
-    addProviderTiles(provider = "CartoDB.Positron") %>%
-    addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
-                stroke = FALSE,
-                smoothFactor = 0,
-                fillOpacity = 0.7,
-                color = ~ pal(estimate)) %>%
-    addLegend("bottomright", 
-              pal = pal, 
-              values = ~ estimate,
-              title = "Population percentiles",
-              opacity = 1)
+med_income_per_tract <- get_decennial(year=2011,
+                                      geography = 'tract',
+                                      variables = c(med_income = 'B19013_001'),
+                                      state = "NY") %>% 
+  arrange(-value)
 ```
+
+
+
+
 
 Population of all counties in NY from 5-year ACS estimates
 ```{r pressure, echo=FALSE}
@@ -94,6 +95,10 @@ queens_faceted <- get_decennial(geography = "tract", variables = racevars,
                   state = "NY", county = "Queens", geometry = TRUE,
                   summary_var = "P001001")
 ```
+
+
+
+
 
 ```{r}
 bronx_faceted %>%
@@ -175,5 +180,19 @@ Writing to Shape Files
 ```{r}
 library(sf)
 st_write(manhattan, "manhattan.shp")
+```
+
+
+Get 5 year estimates of variables for 2007-2011 & 2011-2015
+
+```{r}
+cencus_2007_2011 <- get_acs(geography = 'tract',
+        variables = 'B07011_001E',
+        state = 'NY', year = 2011)
+        
+        
+cencus_2011_2015 <- get_acs(geography = 'tract',
+                            variables = 'B07011_001E',
+                            state = 'NY', year = 2015)
 ```
 
