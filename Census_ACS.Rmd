@@ -206,3 +206,36 @@ cencus_2011_2015 <- get_acs(geography = "tract",
 ```
 
 
+```{r}
+# cencus_2007_2011 <- spread(cencus_2007_2011, variable, estimate)
+# cencus_2011_2015 <- spread(cencus_2011_2015, variable, estimate)
+
+
+```
+
+
+```{r}
+#cencus_2007_2011 <- cencus_2007_2011 %>% distinct(.keep_all = T)
+#cencus_2011_2015 <- cencus_2011_2015 %>% distinct(.keep_all = T)
+```
+
+
+```{r}
+# cencus_2007_2011 <- cencus_2007_2011 %>% rename( race_white = B02001_002,
+                                 #            median_income  =  B07011_001 )
+```
+
+
+
+```{r}
+# cencus_2011_2015 <- cencus_2011_2015 %>% rename( race = B02001_001,
+                                    #         median_income  =  B07011_001 )
+```
+
+```{r}
+
+```
+
+
+
+
