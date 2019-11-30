@@ -20,7 +20,7 @@ options(tigris_use_cache = TRUE)
 
 API Key
 ```{r cars}
-census_api_key("4a97bf83f424b28881bbcb2615511bc9c7ec2238", install=T)
+# census_api_key("4a97bf83f424b28881bbcb2615511bc9c7ec2238", install=T)
 ```
 ```{r}
 # readRenviron("~/.Renviron")
@@ -183,16 +183,26 @@ st_write(manhattan, "manhattan.shp")
 ```
 
 
+
 Get 5 year estimates of variables for 2007-2011 & 2011-2015
 
 ```{r}
 cencus_2007_2011 <- get_acs(geography = 'tract',
-        variables = 'B07011_001E',
-        state = 'NY', year = 2011)
-        
-        
-cencus_2011_2015 <- get_acs(geography = 'tract',
-                            variables = c('COUNTY','B07011_001E', 
-                            state = 'NY', year = 2015))
+        variables = c('B02001_002E', # RACE
+                     'B07011_001E'),  
+                                          # MEDIAN INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS) BY GEOGRAPHICAL MOBILITY IN THE PAST YEAR FOR CURRENT RESIDENCE IN THE UNITED STATES
+state = 'NY', year = 2011, geometry = TRUE)
 ```
+
+
+```{r}
+      
+cencus_2011_2015 <- get_acs(geography = "tract",
+                            variables = c( 
+                                          'B02001_001E', # RACE
+                                          'B07011_001E'),  
+                                          # MEDIAN INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS) BY GEOGRAPHICAL MOBILITY IN THE PAST YEAR FOR CURRENT RESIDENCE IN THE UNITED STATES
+   state = 'NY', year = 2015, geometry = TRUE)
+```
+
 
