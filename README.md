@@ -11,6 +11,7 @@ We want to explore the potential correlations and relationships with gentrificat
 - We can use percentage of college graduates  as a representation of gentrification. 
 - Researchers at the University of Southern California find that gentrifying neighborhoods become more white, altering minority communities, this is why we focused our first level analysis of gentrification on race.
 - "When white neighborhoods experience socioeconomic ascent, they retain whites. And when minority neighborhoods experience it, they become more white," said Ann Owens, the study's lead author and a sociologist at USC Dornsife College of Letters, Arts and Sciences.
+- Gentrification measures: change in median income, change in proportion white, and change in proportion of residents with college degrees
 
 ### Methodology
 1. Cencus data for ACS 5 year estimates in: 2007-11 and 2011-15 (one record per tract)
@@ -50,6 +51,13 @@ the cross-sectional nature of the data.
 - A lack of consensus around the definition of gentrification
 
 - Tobacco retailers data set may underestimate prevalence as it does not contain information for unlicensed shops
+
+**Modeling 1**
+- Outcome is number of tobacco retailers in 2015
+- Predictors are genetrification measures, number of tobacco retailers in 2011, interaction between the two (poisson models or OLS)
+
+**Modeling 2**
+- Logit model where outcome is whehter or not tract reduces its number of tobacco retailers
 
 ### Next Steps
 - To join the census and tobacco data, we map the latitude and longitude coordinate of each check-in to a census tract
