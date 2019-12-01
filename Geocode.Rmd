@@ -5,11 +5,12 @@ date: "10/19/2019"
 output: html_document
 ---
 
+Setup
+
 ```{r ,include=FALSE}
 setwd('/Users/riapinjani/Documents/Fall\'19/Statistical\ Consulting')
-
-
 ```
+
 
 ```{r}
 
@@ -23,33 +24,38 @@ require('lubridate')
 require('ggplot2')
 require('tidyr')
 require('ggmap')
+require('tigris')
 ```
 
-
+Read in tobacco retailers data set for 2007 - 2015
 
 ```{r}
 
-foil_2007_2015  <- read_excel('FOIL Case No. 83-2017_List of Cigarette Retail Dealers from 2007 to 2015.xlsx')
+foil_2007_2015  <- read_excel('retailers data/FOIL Case No. 83-2017_List of Cigarette Retail Dealers from 2007 to 2015.xlsx')
 ```
 
+Create variable year from CREATE_DATE
 
 ```{r}
 foil_2007_2015 <-  foil_2007_2015  %>% mutate (Year = year(foil_2007_2015$CREATE_DATE)) 
-
-
 ```
 
 
-
+Subset to years 2010 - 2015
 
 ```{r}
 foil_2010_2015 <- subset(foil_2007_2015, Year %in% c(2010,2011,2012,2013,2014,2015))
 ```
 
+Number of retailers for each year from 2010 - 2015
 
 ```{r}
 foil_2010_2015_n <- foil_2010_2015 %>% count('Year')
+foil_2010_2015_n
 ```
+
+
+
 
 
 ```{r}
@@ -60,6 +66,12 @@ ggplot(foil_2010_2015_n %>% count('Year'), aes ( x = Year, freq)) + geom_line() 
 ggsave('Retailers by year.png')
 ```
 
+Data Cleaning - Remove values where BORO = outside NYC or NULL and values where STATE = NULL
+
+```{r}
+table(foil_2010_2015$BORO)
+table(foil_2010_2015$STATE)
+```
 
 
 
@@ -68,53 +80,81 @@ foil_2010_2015$BORO <- toupper(foil_2010_2015$BORO)
 foil_2010_2015 <- subset(foil_2010_2015 , BORO %in% c('BRONX', 'BROOKLYN', 'MANHATTAN', 'QUEENS', 'STATEN ISLAND'))
 ```
 
+
 ```{r}
 foil_2010_2015 <- subset(foil_2010_2015, STATE == 'NY')
 ```
 
+Make characters in the column CITY to be consistent
 
 ```{r}
 foil_2010_2015$CITY[which(foil_2010_2015$CITY == "BAYSIDE HILLS")] = "BAYSIDE"
 foil_2010_2015$CITY[which(foil_2010_2015$CITY == "CAMBRIA HTS")] = "CAMBRIA HEIGHTS"
 ```
 
-
+Create column address
 
 ```{r}
 foil_2010_2015 <- unite(foil_2010_2015,"address", c(BUILDING, STREET, CITY, STATE, ZIP), sep = " ")
 ```
 
+Remove column STREET_2 as it does not hold any information 
+
 ```{r}
 foil_2010_2015$STREET_2 <- NULL
 ```
 
+Create column Year2 from EXPIRATION_DATE
 
-```{r}
+```{r, warning=FALSE}
 foil_2010_2015 <-  foil_2010_2015  %>% mutate (Year2 = year(foil_2010_2015$EXPIRATION_DATE)) 
 ```
 
+Data set for the year 2011
 
 ```{r}
 foil_2011 <- subset(foil_2010_2015, Year == 2011)
 ```
 
+Google API for geocoding addresses
 
-```{r}
+
+```{r, warning=FALSE}
 register_google(key = 'AIzaSyA8y8FgxCH4WamYldyyBZyIg1TFUTLGUo0')
 ```
 
+Geocoding for the year 2011
+
+Manhattan
 
 ```{r}
 manhattan2011 <- subset(foil_2011, BORO == 'MANHATTAN')
 ```
 
+```{r, include=FALSE}
+geocode_manhattan2011 <- geocode(manhattan2011$address)
+```
+
+
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
+
+```{r}
+
+geocode_manhattan2011$census_code <- apply(geocode_manhattan2011, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+```{r}
+geocode_manhattan2011$census_tract <- substr(geocode_manhattan2011$census_code, 1, 11)
+```
 
 
 
 ```{r}
-geocode_manhattan2011 <- geocode(manhattan2011$address)
+manhattan2011 <- as.data.frame(cbind(manhattan2011, geocode_manhattan2011))
 ```
 
+Brooklyn
 
 
 ```{r}
@@ -122,58 +162,211 @@ brooklyn2011 <- subset(foil_2011, BORO == 'BROOKLYN')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 geocode_brooklyn2011 <- geocode(brooklyn2011$address)
 ```
 
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
+
+
+```{r}
+geocode_brooklyn2011$census_code <- apply(geocode_brooklyn2011, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+```{r}
+geocode_brooklyn2011$census_tract <- substr(geocode_brooklyn2011$census_code, 1, 11)
+```
+
+
+```{r}
+brooklyn2011 <- as.data.frame(cbind(brooklyn2011, geocode_brooklyn2011))
+```
+
+Bronx
 
 ```{r}
 bronx2011 <- subset(foil_2011, BORO == 'BRONX')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 gecode_bronx2011 <- geocode(bronx2011$address)
 ```
 
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
 
+
+```{r}
+
+gecode_bronx2011$census_code <- apply(gecode_bronx2011, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+
+```{r}
+gecode_bronx2011$census_tract <- substr(gecode_bronx2011$census_code, 1, 11)
+```
+
+
+```{r}
+bronx2011 <- as.data.frame(cbind(bronx2011, gecode_bronx2011))
+```
+
+Queens
 
 ```{r}
 queens2011 <- subset(foil_2011, BORO == 'QUEENS')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 geocode_queens2011 <- geocode(queens2011$address)
+```
+
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
+
+```{r}
+
+geocode_queens2011$census_code <- apply(geocode_queens2011, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
 ```
 
 
 
+```{r}
+geocode_queens2011$census_tract <- substr(geocode_queens2011$census_code, 1, 11)
+```
+
+
+```{r}
+queens2011 <- as.data.frame(cbind(queens2011, geocode_queens2011))
+```
+
+
+Staten Island
 
 ```{r}
 statenisland2011 <- subset(foil_2011, BORO == 'STATEN ISLAND')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 geocode_statenisland2011 <- geocode(statenisland2011$address)
 ```
 
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
 
+```{r}
+
+geocode_statenisland2011$census_code <- apply(geocode_statenisland2011, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+
+```{r}
+geocode_statenisland2011$census_tract <- substr(geocode_statenisland2011$census_code, 1, 11)
+```
+
+
+```{r}
+statenisland2011 <- as.data.frame(cbind(statenisland2011, geocode_statenisland2011))
+```
+
+Create data frame for ny 2011 combine all 5 boroughs
+
+```{r}
+ny2011 <- as.data.frame(rbind(manhattan2011, brooklyn2011, bronx2011, queens2011, statenisland2011))
+```
+
+Create variable count in  ny2011 data set to count number of tobacco retailers per tract
+
+```{r}
+ny2011 <- ddply(ny2011,.(census_tract),transform,count=length(census_tract))
+```
+
+Load in 5 year estimates cencus data for years 2007 - 2011 with tracts that have median income less than the average median income for all tracts
+
+
+```{r}
+acs_2011_low <- read_csv('acs_2011_low.csv')
+```
+
+Change name of column GEOID to cencus_tract (consistent with ny 2011 data set) to combine the two data sets
+
+```{r}
+acs_2011_low <- acs_2011_low %>% mutate( census_tract = GEOID   )
+```
+
+
+```{r}
+acs_2011_low$census_tract <- as.character(acs_2011_low$census_tract)
+```
+
+Create a data set ny2011_ that only contains distincts rows (each row representing a distinct tract) and count of retailers per tract
+
+```{r}
+ny2011_ <-  ny2011 %>% select(census_tract, count) %>% distinct()
+```
+
+Create a new data set called data2011 that joins cencus data with ny2011_ by the variable census tract
+
+```{r}
+data2011 <- left_join(acs_2011_low,ny2011_, by = "census_tract")
+
+```
+
+Drop missing values for the variable count i.e. drop all rows for tracts that have no tobacco retailers
+
+```{r}
+data2011 <- data2011 %>%  drop_na(count)
+```
+
+Values range from 1 - 8
+
+```{r}
+table(data2011$count)
+```
+
+Data set for the year 2015
 
 ```{r}
 foil_2015 <- subset(foil_2010_2015, Year == 2015)
 ```
+
+Geocoding for the year 2015
+
+Manhattan
 
 
 ```{r}
 manhattan2015 <- subset(foil_2015, BORO == 'MANHATTAN')
 ```
 
-```{r}
+```{r, include=FALSE}
 geocode_manhattan2015 <- geocode(manhattan2015$address)
 ```
 
+
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
+
+```{r}
+
+geocode_manhattan2015$census_code <- apply(geocode_manhattan2015, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+
+```{r}
+geocode_manhattan2015$census_tract <- substr(geocode_manhattan2015$census_code, 1, 11)
+```
+
+
+```{r}
+manhattan2015 <- as.data.frame(cbind(manhattan2015, geocode_manhattan2015))
+```
+
+Brooklyn
 
 
 ```{r}
@@ -181,70 +374,179 @@ brooklyn2015 <- subset(foil_2015, BORO == 'BROOKLYN')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 geocode_brooklyn2015 <- geocode(brooklyn2015$address)
 ```
 
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
+
+```{r}
+
+geocode_brooklyn2015$census_code <- apply(geocode_brooklyn2015, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+```{r}
+geocode_brooklyn2015$census_tract <- substr(geocode_brooklyn2015$census_code, 1, 11)
+```
+
+```{r}
+brooklyn2015 <- as.data.frame(cbind(brooklyn2015, geocode_brooklyn2015))
+```
+
+Bronx
 
 ```{r}
 bronx2015 <- subset(foil_2015, BORO == 'BRONX')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 gecode_bronx2015 <- geocode(bronx2015$address)
 ```
 
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
 
+```{r}
+
+gecode_bronx2015$census_code <- apply(gecode_bronx2015, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+
+```{r}
+gecode_bronx2015$census_tract <- substr(gecode_bronx2015$census_code, 1, 11)
+```
+
+
+```{r}
+bronx2015 <- as.data.frame(cbind(bronx2015, gecode_bronx2015))
+```
+
+
+Queens
 
 ```{r}
 queens2015 <- subset(foil_2015, BORO == 'QUEENS')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 geocode_queens2015 <- geocode(queens2015$address)
 ```
 
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
 
+```{r}
 
+geocode_queens2015$census_code <- apply(geocode_queens2015, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
+```
+
+```{r}
+geocode_queens2015$census_tract <- substr(geocode_queens2015$census_code, 1, 11)
+```
+
+```{r}
+queens2015 <- as.data.frame(cbind(queens2015, geocode_queens2015))
+```
+
+Staten Island
 
 ```{r}
 statenisland2015 <- subset(foil_2015, BORO == 'STATEN ISLAND')
 ```
 
 
-```{r}
+```{r, include=FALSE}
 geocode_statenisland2015 <- geocode(statenisland2015$address)
 ```
 
-
-
+Using the tigris package to identify cencus tract for each tobacco retailers from lat and lon variables & Combine into one data frame
 
 ```{r}
-as.data.frame(rbind(geocode_brooklyn2011,geocode_manhattan2011))
+
+geocode_statenisland2015$census_code <- apply(geocode_statenisland2015, 1, function(row) call_geolocator_latlon(row['lat'], row['lon']))
+
 ```
 
 ```{r}
-write.csv(queens2011, 'queens2011.csv')
-write.csv(manhattan2011, 'manhattan2011.csv')
-write.csv(bronx2011, 'bronx2011.csv')
-write.csv(brooklyn2011, 'brooklyn2011.csv')
-write.csv(statenisland2011, 'statenisland2011.csv')
+geocode_statenisland2015$census_tract <- substr(geocode_statenisland2015$census_code, 1, 11)
+```
 
-write.csv(queens2015, 'queens2015.csv')
-write.csv(manhattan2015, 'manhattan2015.csv')
-write.csv(bronx2015, 'bronx2015.csv')
-write.csv(brooklyn2015, 'brooklyn2015.csv')
-write.csv(statenisland2015, 'statenisland2015.csv')
+```{r}
+statenisland2015 <- as.data.frame(cbind(statenisland2015, geocode_statenisland2015))
+```
+
+Create data frame for ny 2015 combine all 5 boroughs
 
 
+```{r}
+ny2015 <- as.data.frame(rbind(manhattan2015, brooklyn2015, bronx2015, queens2015, statenisland2015))
+```
+
+Create variable count in  ny2015 data set to count number of tobacco retailers per tract
+
+```{r}
+ny2015 <- ddply(ny2015,.(census_tract),transform,count=length(census_tract))
+```
+
+Load in 5 year estimates cencus data for years 2011 - 2015 with tracts that have median income less than the average median income for all tracts
+
+```{r}
+
+acs_2015_low <- read_csv('acs_2015_low.csv')
+```
+
+Change name of column GEOID to cencus_tract (consistent with ny 2015 data set) to combine the two data sets
+
+```{r}
+acs_2015_low <- acs_2015_low %>% mutate( census_tract = GEOID   )
+```
+
+
+```{r}
+acs_2015_low$census_tract <- as.character(acs_2015_low$census_tract)
+```
+
+
+Create a data set ny2015_ that only contains distincts rows (each row representing a distinct tract) and count of retailers per tract
+
+```{r}
+ny2015_ <-  ny2015 %>% select(census_tract, count) %>% distinct()
+```
+
+Create a new data set called data2015 that joins cencus data with ny2015_ by the variable census tract
+
+
+```{r}
+data2015 <- left_join(acs_2015_low,ny2015_, by = "census_tract")
 
 ```
 
 
+Drop missing values for the variable count i.e. drop all rows for tracts that have no tobacco retailers
 
 
+```{r}
+data2015 <- data2015 %>% drop_na(count)
+```
+
+Values range from  1-8
+
+```{r}
+table(data2015$count)
+```
+
+Write csv files for 2011 and 2015 data sets
+
+```{r}
+
+
+write_csv(data2011, "data2011.csv")
+write_csv(data2015, "data2015.csv")
+
+```
 
 
 
