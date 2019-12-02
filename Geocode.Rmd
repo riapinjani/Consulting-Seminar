@@ -279,54 +279,9 @@ Create data frame for ny 2011 combine all 5 boroughs
 ny2011 <- as.data.frame(rbind(manhattan2011, brooklyn2011, bronx2011, queens2011, statenisland2011))
 ```
 
-Create variable count in  ny2011 data set to count number of tobacco retailers per tract
-
-```{r}
-ny2011 <- ddply(ny2011,.(census_tract),transform,count=length(census_tract))
-```
-
-Load in 5 year estimates cencus data for years 2007 - 2011 with tracts that have median income less than the average median income for all tracts
 
 
-```{r}
-acs_2011_low <- read_csv('acs_2011_low.csv')
-```
 
-Change name of column GEOID to cencus_tract (consistent with ny 2011 data set) to combine the two data sets
-
-```{r}
-acs_2011_low <- acs_2011_low %>% mutate( census_tract = GEOID   )
-```
-
-
-```{r}
-acs_2011_low$census_tract <- as.character(acs_2011_low$census_tract)
-```
-
-Create a data set ny2011_ that only contains distincts rows (each row representing a distinct tract) and count of retailers per tract
-
-```{r}
-ny2011_ <-  ny2011 %>% select(census_tract, count) %>% distinct()
-```
-
-Create a new data set called data2011 that joins cencus data with ny2011_ by the variable census tract
-
-```{r}
-data2011 <- left_join(acs_2011_low,ny2011_, by = "census_tract")
-
-```
-
-Drop missing values for the variable count i.e. drop all rows for tracts that have no tobacco retailers
-
-```{r}
-data2011 <- data2011 %>%  drop_na(count)
-```
-
-Values range from 1 - 8
-
-```{r}
-table(data2011$count)
-```
 
 Data set for the year 2015
 
@@ -485,66 +440,14 @@ Create data frame for ny 2015 combine all 5 boroughs
 ny2015 <- as.data.frame(rbind(manhattan2015, brooklyn2015, bronx2015, queens2015, statenisland2015))
 ```
 
-Create variable count in  ny2015 data set to count number of tobacco retailers per tract
-
-```{r}
-ny2015 <- ddply(ny2015,.(census_tract),transform,count=length(census_tract))
-```
-
-Load in 5 year estimates cencus data for years 2011 - 2015 with tracts that have median income less than the average median income for all tracts
-
-```{r}
-
-acs_2015_low <- read_csv('acs_2015_low.csv')
-```
-
-Change name of column GEOID to cencus_tract (consistent with ny 2015 data set) to combine the two data sets
-
-```{r}
-acs_2015_low <- acs_2015_low %>% mutate( census_tract = GEOID   )
-```
-
-
-```{r}
-acs_2015_low$census_tract <- as.character(acs_2015_low$census_tract)
-```
-
-
-Create a data set ny2015_ that only contains distincts rows (each row representing a distinct tract) and count of retailers per tract
-
-```{r}
-ny2015_ <-  ny2015 %>% select(census_tract, count) %>% distinct()
-```
-
-Create a new data set called data2015 that joins cencus data with ny2015_ by the variable census tract
-
-
-```{r}
-data2015 <- left_join(acs_2015_low,ny2015_, by = "census_tract")
-
-```
-
-
-Drop missing values for the variable count i.e. drop all rows for tracts that have no tobacco retailers
-
-
-```{r}
-data2015 <- data2015 %>% drop_na(count)
-```
-
-Values range from  1-8
-
-```{r}
-table(data2015$count)
-```
 
 Write csv files for 2011 and 2015 data sets
 
 ```{r}
 
 
-write_csv(data2011, "data2011.csv")
-write_csv(data2015, "data2015.csv")
+write_csv(ny2011, "ny2011.csv")
+write_csv(ny2015, "ny2015.csv")
 
 ```
 
